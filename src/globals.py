@@ -18,3 +18,4 @@ DATASET_INFO = api.dataset.get_info_by_id(id=DATASET_ID)
 
 SLY_APP_DATA_DIR = sly.app.get_data_dir()
 STATIC_DIR = os.path.join(SLY_APP_DATA_DIR, "images")
+os.makedirs(STATIC_DIR, exist_ok=True)
