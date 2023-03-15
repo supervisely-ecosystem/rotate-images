@@ -14,6 +14,7 @@ from supervisely.app.widgets import (
     Field,
     Button,
     Flexbox,
+    Checkbox,
 )
 
 import src.globals as g
@@ -27,6 +28,8 @@ COL_WIDTH = "width (pixels)".upper()
 COL_HEIGHT = "height (pixels)".upper()
 COL_LABELS = "labels (count)".upper()
 SELECT_IMAGE = "select".upper()
+
+current_angle = 0
 
 columns = [COL_ID, COL_IMAGE, COL_SIZE, COL_WIDTH, COL_HEIGHT, COL_LABELS, SELECT_IMAGE]
 
@@ -44,6 +47,7 @@ table_card.lock()
 image_preview = LabeledImage()
 image_preview.set(title="", image_url=os.path.join("static", g.PLACEHOLDER))
 
+global rotator
 rotator = Slider(
     value=0,
     min=-180,
@@ -52,25 +56,34 @@ rotator = Slider(
     show_input=True,
     show_input_controls=True,
 )
+rotator.set_value(current_angle)
 
-rotate_left_button = Button("Rotate left", icon="fa:undo")
-rotate_right_button = Button("Rotate right", icon="fa:repeat")
+rotate_left_button = Button("Rotate left", icon="zmdi zmdi-undo")
+rotate_right_button = Button("Rotate right", icon="zmdi zmdi-redo")
 
 rotate_buttons = Flexbox(
     widgets=[rotate_left_button, rotate_right_button], center_content=True
 )
 
-controls_field = Field(
-    title="Rotate image",
-    description="Choose the angle for rotation.",
-    content=Container(widgets=[rotator, rotate_buttons], direction="vertical"),
+precise_angle_checkbox = Checkbox("Rotate the image with precise angle", checked=False)
+
+apply_button = Button("Apply", icon="zmdi zmdi-check")
+reset_button = Button("Reset", icon="zmdi zmdi-close", button_type="warning")
+apply_flexbox = Flexbox(widgets=[apply_button, reset_button], center_content=True)
+
+
+slider_field = Field(
+    title="Rotate image with precise angle",
+    description="Use the silder for rotating and then click the button to apply the angle.",
+    content=Container(widgets=[rotator, apply_flexbox], direction="vertical"),
 )
+slider_field.hide()
 
 preview_card = Card(
     "3️⃣ Image preview",
     "The image will automatically update after changing the angle.",
     content=Container(
-        [image_preview, controls_field],
+        [image_preview, rotate_buttons, precise_angle_checkbox, slider_field],
         direction="vertical",
     ),
     lock_message="Choose the image on the step 2️⃣.",
@@ -80,16 +93,45 @@ preview_card.lock()
 
 @rotate_left_button.click
 def rotate_left():
-    current_angle = rotator.get_value()
-    new_angle = current_angle - 90
-    rotator.set_value(new_angle)
+    global current_angle
+    rotate_angle = current_angle - 90
+    current_angle = rotate_angle
+    rotate_image(rotate_angle)
 
 
 @rotate_right_button.click
 def rotate_right():
-    current_angle = rotator.get_value()
-    new_angle = current_angle + 90
-    rotator.set_value(new_angle)
+    global current_angle
+    rotate_angle = current_angle + 90
+    current_angle = rotate_angle
+    rotate_image(rotate_angle)
+
+
+@precise_angle_checkbox.value_changed
+def precise_angle(checked):
+    if checked:
+        slider_field.show()
+        rotate_buttons.hide()
+        rotator.set_value(current_angle)
+    else:
+        slider_field.hide()
+        rotate_buttons.show()
+
+
+@apply_button.click
+def apply_angle():
+    rotator_angle = rotator.get_value()
+    global current_angle
+    current_angle += rotator_angle
+    rotate_image(rotator_angle)
+
+
+@reset_button.click
+def reset_angle():
+    rotator.set_value(0)
+    global current_angle
+    current_angle = 0
+    rotate_image(0)
 
 
 def build_table(dataset_id: int):
@@ -188,17 +230,17 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
         image_preview.show()
 
 
-@rotator.value_changed
 def rotate_image(angle: int):
     # Preparing widget for the new image.
     image_preview.clean_up()
 
-    if g.LEFT_LOCK_ANGLE <= angle <= g.RIGHT_LOCK_ANGLE:
+    global current_angle
+    if g.LEFT_LOCK_ANGLE <= current_angle <= g.RIGHT_LOCK_ANGLE:
         rotate_left_button.enable()
         rotate_right_button.enable()
-    elif angle < g.LEFT_LOCK_ANGLE:
+    elif current_angle < g.LEFT_LOCK_ANGLE:
         rotate_left_button.disable()
-    elif angle > g.RIGHT_LOCK_ANGLE:
+    elif current_angle > g.RIGHT_LOCK_ANGLE:
         rotate_right_button.disable()
 
     # Loading the image from the local static directory for rotation.
@@ -208,7 +250,7 @@ def rotate_image(angle: int):
     # Using KEEP_BLACK mode to avoid data loss of the image.
     img = sly.image.rotate(img, -angle, mode=sly.image.RotateMode.KEEP_BLACK)
 
-    rotated_image_filename = f"rotated_{angle}_{current_image.name}"
+    rotated_image_filename = f"rotated_{-angle}_{current_image.name}"
 
     # Defining the path to the rotated image in local static directory as global variable.
     global rotated_image_local_path

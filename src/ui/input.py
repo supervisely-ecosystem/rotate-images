@@ -18,9 +18,8 @@ dataset_thumbnail = DatasetThumbnail()
 dataset_thumbnail.hide()
 
 load_button = Button("Load data")
-
-lock_checkbox = Checkbox("Lock dataset")
-lock_checkbox.hide()
+change_dataset_button = Button("Change dataset", icon="zmdi zmdi-lock-open")
+change_dataset_button.hide()
 
 selected_project = None
 selected_dataset = None
@@ -67,7 +66,7 @@ card = Card(
     "1️⃣ Input dataset",
     "Images from the selected dataset will be loaded.",
     content=Container(
-        widgets=[lock_checkbox, select_dataset, load_button, dataset_thumbnail]
+        widgets=[dataset_thumbnail, select_dataset, load_button, change_dataset_button]
     ),
 )
 
@@ -76,11 +75,10 @@ card = Card(
 def load_dataset():
     # Disabling the dataset selector and the load button.
     select_dataset.disable()
-    load_button.disable()
+    load_button.hide()
 
     # Showing the lock checkbox for unlocking the dataset selector and button.
-    lock_checkbox.check()
-    lock_checkbox.show()
+    change_dataset_button.show()
 
     # Putting the placeholder image to the image preview and locking rotator and output cards.
     rotator.image_preview.set(title="", image_url=os.path.join("static", g.PLACEHOLDER))
@@ -104,11 +102,8 @@ def load_dataset():
     rotator.table_card.unlock()
 
 
-@lock_checkbox.value_changed
-def unlock_input(checked):
-    if not checked:
-        select_dataset.enable()
-        load_button.enable()
-    else:
-        select_dataset.disable()
-        load_button.disable()
+@change_dataset_button.click
+def unlock_input():
+    select_dataset.enable()
+    load_button.show()
+    change_dataset_button.hide()
