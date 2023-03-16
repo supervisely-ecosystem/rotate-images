@@ -21,17 +21,27 @@ import src.globals as g
 import src.ui.input as input
 import src.ui.output as output
 
-COL_ID = "image id".upper()
-COL_IMAGE = "image".upper()
-COL_SIZE = "size (bytes)".upper()
-COL_WIDTH = "width (pixels)".upper()
-COL_HEIGHT = "height (pixels)".upper()
-COL_LABELS = "labels (count)".upper()
-SELECT_IMAGE = "select".upper()
+COL_ID = "IMAGE ID"
+COL_IMAGE = "FILE NAME"
+COL_SIZE = "SIZE (BYTES)"
+COL_WIDTH = "WIDTH (PIXELS)"
+COL_HEIGHT = "HEIGHT (PIXELS)"
+COL_LABELS = "LABELS (COUNT)"
+SELECT_IMAGE = "SELECT"
 
 current_angle = 0
 
-columns = [COL_ID, COL_IMAGE, COL_SIZE, COL_WIDTH, COL_HEIGHT, COL_LABELS, SELECT_IMAGE]
+columns = [
+    COL_ID,
+    COL_IMAGE,
+    COL_SIZE,
+    COL_WIDTH,
+    COL_HEIGHT,
+    COL_LABELS,
+    SELECT_IMAGE,
+]
+
+rows = []
 
 table = Table(fixed_cols=1, width="100%", per_page=15)
 table.hide()
@@ -140,10 +150,7 @@ def build_table(dataset_id: int):
     Args:
         dataset_id (int): the id of the dataset to build the table for.
     """
-    global table
-
-    # Clearing the table.
-    rows = []
+    global table, rows
 
     table.loading = True
 
@@ -155,26 +162,33 @@ def build_table(dataset_id: int):
     )
 
     for image in images:
-        rows.append(
-            [
-                image.id,
-                image.name,
-                image.size,
-                image.width,
-                image.height,
-                image.labels_count,
-                sly.app.widgets.Table.create_button(SELECT_IMAGE),
-            ]
-        )
+        rows.append(data_from_image(image))
 
-    df = pd.DataFrame(rows, columns=columns)
-    table.read_pandas(df)
+    # df = pd.DataFrame(rows, columns=columns)
+    # table.read_pandas(df)
+
+    dict = {"columns": columns, "data": rows}
+
+    table.read_json(dict)
+
     table.loading = False
 
-    sly.logger.debug("Table with images was built successfully.")
+    sly.logger.debug(f"Table with {len(images)} images was built successfully.")
 
     # Showing the table when the build is finished.
     table.show()
+
+
+def data_from_image(image):
+    return [
+        image.id,
+        image.name,
+        image.size,
+        image.width,
+        image.height,
+        image.labels_count,
+        sly.app.widgets.Table.create_button(SELECT_IMAGE),
+    ]
 
 
 # Global variables to access them in different functions.
@@ -187,24 +201,35 @@ rotated_annotation = None
 
 @table.click
 def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
-    global current_image
     if datapoint.button_name is None:
         return
+
+    # Resetting the global variables if the new image was selected.
+    global current_image, current_image_local_path, current_image_annotation
+    current_image = current_image_local_path = current_image_annotation = None
+    global rotated_image_local_path, rotated_annotation
+    rotated_image_local_path = rotated_annotation = None
+
+    image_preview.loading = True
 
     # Getting image id from the table after clicking the button.
     current_image_id = datapoint.row[COL_ID]
     # Getting image info from the dataset by image id.
     current_image = g.api.image.get_info_by_id(current_image_id)
 
-    print(current_image_id)
+    sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
     if datapoint.button_name == SELECT_IMAGE:
         # Defining the path to the image in local static directory as global variable.
-        global current_image_local_path
+        # global current_image_local_path
         current_image_local_path = os.path.join(g.STATIC_DIR, current_image.name)
 
         # Downloading the image from the dataset to the local static directory.
         g.api.image.download(current_image_id, current_image_local_path)
+
+        sly.logger.debug(
+            f"The image with id {current_image_id} was downloaded to {current_image_local_path}."
+        )
 
         # Getting project meta object from the dataset.
         meta_json = g.api.project.get_meta(input.selected_project)
@@ -215,19 +240,26 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
         ann_json = ann_info.annotation
 
         # Defining the annotation object as global variable to save it after rotation.
-        global current_image_annotation
+        # global current_image_annotation
         current_image_annotation = sly.Annotation.from_json(ann_json, project_meta)
+
+        sly.logger.debug("Successfully read annotation for the image.")
 
         image_preview.set(
             title=current_image.name,
             image_url=os.path.join("static", current_image.name),
             ann=current_image_annotation,
         )
-        rotator.set_value(0)
 
+        sly.logger.debug(
+            f"Updated image preview with the image {current_image.name} from static directory."
+        )
+
+        image_preview.loading = False
+
+        rotator.set_value(0)
         preview_card.unlock()
         output.card.unlock()
-        image_preview.show()
 
 
 def rotate_image(angle: int):
@@ -236,19 +268,40 @@ def rotate_image(angle: int):
 
     global current_angle
     if g.LEFT_LOCK_ANGLE <= current_angle <= g.RIGHT_LOCK_ANGLE:
+        # Unlocking the buttons if the angle is in the allowed range.
         rotate_left_button.enable()
         rotate_right_button.enable()
+
+        sly.logger.debug(f"Current angle is {current_angle}. Both buttons are enabled.")
+
     elif current_angle < g.LEFT_LOCK_ANGLE:
+        # Locking the left button if the angle is less than the left lock angle.
         rotate_left_button.disable()
+
+        sly.logger.debug(
+            f"Current angle {current_angle} smaller than {g.LEFT_LOCK_ANGLE}. Left button is disabled."
+        )
+
     elif current_angle > g.RIGHT_LOCK_ANGLE:
+        # Locking the right button if the angle is more than the right lock angle.
         rotate_right_button.disable()
+
+        sly.logger.debug(
+            f"Current angle {current_angle} bigger than {g.RIGHT_LOCK_ANGLE}. Right button is disabled."
+        )
 
     # Loading the image from the local static directory for rotation.
     img = sly.image.read(current_image_local_path)
 
+    sly.logger.debug(
+        f"Image was readed from path {current_image_local_path} in static directory."
+    )
+
     # Rotating the image with inverted angle (just for convinient appearance in the GUI).
     # Using KEEP_BLACK mode to avoid data loss of the image.
     img = sly.image.rotate(img, -angle, mode=sly.image.RotateMode.KEEP_BLACK)
+
+    sly.logger.debug(f"Image was rotated with angle {-angle} degrees.")
 
     rotated_image_filename = f"rotated_{-angle}_{current_image.name}"
 
@@ -259,6 +312,8 @@ def rotate_image(angle: int):
     # Saving the rotated image to the local static directory.
     sly.image.write(rotated_image_local_path, img)
 
+    sly.logger.debug(f"Rotated image was saved to {rotated_image_local_path}.")
+
     # Rotating the annotation with inverted angle (just for convinient appearance in the GUI).
     rotator = ImageRotator(current_image_annotation.img_size, -angle)
 
@@ -266,9 +321,15 @@ def rotate_image(angle: int):
     global rotated_annotation
     rotated_annotation = current_image_annotation.rotate(rotator)
 
+    sly.logger.debug("Annotation was successfully rotated.")
+
     # Updating the image preview widget with new rotated image and annotation.
     image_preview.set(
         title=current_image.name,
         image_url=os.path.join("static", rotated_image_filename),
         ann=rotated_annotation,
+    )
+
+    sly.logger.debug(
+        f"Updated image preview with the rotated image {rotated_image_filename}."
     )

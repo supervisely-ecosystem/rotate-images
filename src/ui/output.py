@@ -38,6 +38,8 @@ def save_image():
         result_message.text = "The image was not rotated."
         result_message.status = "error"
 
+        result_message.show()
+
         sly.logger.info("The save button was pressed, but the image was not rotated.")
 
         return
@@ -64,31 +66,46 @@ def save_image():
             f"Removed the image with id {image_id} from the dataset with id {dataset_id}"
         )
 
+        # Deleting the row with the current image from the table.
+        rotator.table.delete_row(rotator.COL_ID, image_id)
+
+        sly.logger.debug(
+            f"Deleted the row with image id {image_id} from the column {rotator.COL_ID}"
+        )
+
+        # Using the same name for the image since it was removed from the dataset.
         image_name = rotator.current_image.name
 
-        result_message.text = "Successfully updated the image."
+        result_message.text = "Successfully replaced the image."
 
     # Uploading the rotated image to the dataset.
-    rotated_image_id = g.api.image.upload_path(
+    rotated_image = g.api.image.upload_path(
         dataset_id,
         image_name,
         rotator.rotated_image_local_path,
         rotator.current_image.meta,
-    ).id
+    )
 
     sly.logger.info(
-        f"Uploaded the rotated image with id {rotated_image_id} to the dataset with id {dataset_id}."
+        f"Uploaded the rotated image with id {rotated_image.id} to the dataset with id {dataset_id}."
     )
 
     if rotator.rotated_annotation:
         # Uploading the annotation for the rotated image if it exists.
-        g.api.annotation.upload_ann(rotated_image_id, rotator.rotated_annotation)
+        g.api.annotation.upload_ann(rotated_image.id, rotator.rotated_annotation)
 
         sly.logger.info(
-            f"Uploaded the annotation for the image with id {rotated_image_id}."
+            f"Uploaded the annotation for the image with id {rotated_image.id}."
         )
 
     result_message.status = "success"
     result_message.show()
 
-    rotator.build_table(dataset_id)
+    # Adding the row with the rotated image to the table and updating it.
+    rotator.table.loading = True
+
+    rotator.table.insert_row(rotator.data_from_image(rotated_image))
+
+    sly.logger.debug(f"Added the row with image id {rotated_image.id} to the table.")
+
+    rotator.table.loading = False
