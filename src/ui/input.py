@@ -27,6 +27,9 @@ no_dataset_message = Text(
 )
 no_dataset_message.hide()
 
+# Global variables to access them from other modules.
+selected_team = None
+selected_workspace = None
 selected_project = None
 selected_dataset = None
 
@@ -37,6 +40,8 @@ if g.DATASET_ID and g.PROJECT_ID:
     # Stting values to the widgets from environment variables.
     select_dataset = SelectDataset(default_id=g.DATASET_ID, project_id=g.PROJECT_ID)
 
+    selected_team = g.TEAM_ID
+    selected_workspace = g.WORKSPACE_ID
     selected_project = g.PROJECT_ID
     selected_dataset = g.DATASET_ID
 
@@ -56,6 +61,8 @@ elif g.PROJECT_ID:
     # If the app was loaded from a project: showing the dataset selector in compact mode.
     sly.logger.debug("App was loaded from a project.")
 
+    selected_team = g.TEAM_ID
+    selected_workspace = g.WORKSPACE_ID
     selected_project = g.PROJECT_ID
 
     select_dataset = SelectDataset(
@@ -67,7 +74,7 @@ else:
 
     select_dataset = SelectDataset()
 
-
+# Inout card with all widgets.
 card = Card(
     "1️⃣ Input dataset",
     "Images from the selected dataset will be loaded.",
@@ -85,6 +92,10 @@ card = Card(
 
 @load_button.click
 def load_dataset():
+    """Handles the load button click event. Reading values from the SelectDataset widget,
+    calling the API to get project, workspace and team ids (if they're not set),
+    building the table with images and unlocking the rotator and output cards.
+    """
     # Reading the dataset id from SelectDataset widget.
     dataset_id = select_dataset.get_selected_id()
 
@@ -114,10 +125,21 @@ def load_dataset():
     rotator.preview_card.lock()
     output.card.lock()
 
-    global selected_project
-    selected_project = g.api.dataset.get_info_by_id(dataset_id).project_id
+    global selected_team, selected_workspace, selected_project
+    if not selected_project:
+        # If the project id is not set, getting project, workspace and team ids from the API.
+        sly.logger.debug(
+            f"Project ID is not set, calling API with dataset ID {dataset_id}."
+        )
 
-    sly.logger.debug(f"Dataset id loaded from the selector: {dataset_id}")
+        selected_project = g.api.dataset.get_info_by_id(dataset_id).project_id
+        selected_workspace = g.api.project.get_info_by_id(selected_project).workspace_id
+        selected_team = g.api.workspace.get_info_by_id(selected_workspace).team_id
+
+        sly.logger.debug(
+            f"Recived IDs from the API. Selected team: {selected_team}, "
+            f"selected workspace: {selected_workspace}, selected project: {selected_project}"
+        )
 
     dataset_thumbnail.set(
         g.api.project.get_info_by_id(selected_project),
@@ -132,6 +154,9 @@ def load_dataset():
 
 @change_dataset_button.click
 def unlock_input():
+    """Handles the change dataset button click event. Enabling the dataset selector
+    and the load button, hiding the change dataset button.
+    """
     select_dataset.enable()
     load_button.show()
     change_dataset_button.hide()

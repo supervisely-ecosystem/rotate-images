@@ -1,6 +1,7 @@
 import os
 
-import pandas as pd
+from typing import List, Union
+
 import supervisely as sly
 
 from supervisely.geometry.image_rotator import ImageRotator
@@ -21,6 +22,10 @@ import src.globals as g
 import src.ui.input as input
 import src.ui.output as output
 
+# Global variable to store rotated angle value across the modules.
+current_angle = 0
+
+# Table columns names.
 COL_ID = "IMAGE ID"
 COL_IMAGE = "FILE NAME"
 COL_SIZE = "SIZE (BYTES)"
@@ -28,8 +33,6 @@ COL_WIDTH = "WIDTH (PIXELS)"
 COL_HEIGHT = "HEIGHT (PIXELS)"
 COL_LABELS = "LABELS (COUNT)"
 SELECT_IMAGE = "SELECT"
-
-current_angle = 0
 
 columns = [
     COL_ID,
@@ -41,11 +44,13 @@ columns = [
     SELECT_IMAGE,
 ]
 
+# Global variable to store rows of the table.
 rows = []
 
 table = Table(fixed_cols=1, width="100%", per_page=15)
 table.hide()
 
+# Card with table widget (left side).
 table_card = Card(
     "2️⃣ Select image",
     "Choose the image to rotate.",
@@ -57,7 +62,6 @@ table_card.lock()
 image_preview = LabeledImage()
 image_preview.set(title="", image_url=os.path.join("static", g.PLACEHOLDER))
 
-global rotator
 rotator = Slider(
     value=0,
     min=-180,
@@ -89,6 +93,7 @@ slider_field = Field(
 )
 slider_field.hide()
 
+# Card with all preview widgets (right side).
 preview_card = Card(
     "3️⃣ Image preview",
     "The image will automatically update after changing the angle.",
@@ -103,22 +108,29 @@ preview_card.lock()
 
 @rotate_left_button.click
 def rotate_left():
+    """Rotates the image to the left by the angle specified in the global variable."""
     global current_angle
-    rotate_angle = current_angle - 90
+    rotate_angle = current_angle - g.ROTATE_ANGLE
     current_angle = rotate_angle
     rotate_image(rotate_angle)
 
 
 @rotate_right_button.click
 def rotate_right():
+    """Rotates the image to the right by the angle specified in the global variable."""
     global current_angle
-    rotate_angle = current_angle + 90
+    rotate_angle = current_angle + g.ROTATE_ANGLE
     current_angle = rotate_angle
     rotate_image(rotate_angle)
 
 
 @precise_angle_checkbox.value_changed
-def precise_angle(checked):
+def precise_angle(checked: bool):
+    """Shows the slider field when the checkbox is checked and hides it otherwise.
+
+    Args:
+        checked (_type_): current state of the checkbox.
+    """
     if checked:
         slider_field.show()
         rotate_buttons.hide()
@@ -130,14 +142,16 @@ def precise_angle(checked):
 
 @apply_button.click
 def apply_angle():
+    """Applies the angle specified in the slider to the image and rotates it."""
     rotator_angle = rotator.get_value()
     global current_angle
-    current_angle += rotator_angle
+    current_angle = rotator_angle
     rotate_image(rotator_angle)
 
 
 @reset_button.click
 def reset_angle():
+    """Resets the angle to 0 and rotates the image to the original position."""
     rotator.set_value(0)
     global current_angle
     current_angle = 0
@@ -179,10 +193,27 @@ def build_table(dataset_id: int):
     table.show()
 
 
-def data_from_image(image):
+def data_from_image(image: sly.api.image_api.ImageInfo) -> List[Union[str, int]]:
+    """Creates the row for the table from the ImageInfo object.
+
+    Args:
+        image (sly.api.image_api.ImageInfo): object containing the information about the image
+        in Supervisely dataset.
+
+    Returns:
+        List[Union[str, int]]: image id, image name, image size, image width, image height,
+        number of labels, button to select the image in the table
+    """
+    image_url = sly.imaging.image.get_labeling_tool_url(
+        input.selected_team,
+        input.selected_workspace,
+        input.selected_project,
+        input.selected_dataset,
+        image.id,
+    )
     return [
         image.id,
-        image.name,
+        f"<a href={image_url}>{image.name}</a>",
         image.size,
         image.width,
         image.height,
@@ -201,6 +232,13 @@ rotated_annotation = None
 
 @table.click
 def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
+    """Handles the click on the button in the table. Gets the image id from the
+    table and calls the API to get the image info. Downloads the image to the static directory,
+    reads the annotation info and shows the image in the preview widget.
+
+    Args:
+        datapoint (sly.app.widgets.Table.ClickedDataPoint): clicked datapoint in the table.
+    """
     if datapoint.button_name is None:
         return
 
@@ -263,10 +301,17 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
 
 
 def rotate_image(angle: int):
+    """Rotates the image and annotation by the given angle. Updates preview widget with the
+    rotated image and annotation.
+
+    Args:
+        angle (int): angle to rotate the image and annotation.
+    """
     # Preparing widget for the new image.
     image_preview.clean_up()
 
     global current_angle
+
     if g.LEFT_LOCK_ANGLE <= current_angle <= g.RIGHT_LOCK_ANGLE:
         # Unlocking the buttons if the angle is in the allowed range.
         rotate_left_button.enable()
