@@ -1,9 +1,9 @@
 {
-  "name": "Images rotate",
+  "name": "Rotate images",
   "type": "app",
   "version": "2.0.0",
-  "release": { "version":"v1.0.0", "name":"init" },
-  "slug": "iwatkot/images_rotate",
+  "release": { "version": "v0.0.2", "name": "init" },
+  "slug": "iwatkot/rotate_images",
   "categories": [],
   "description": "Rotates images along with the annotations in the dataset.",
   "docker_image": "supervisely/base-py-sdk:6.69.69",
@@ -14,7 +14,7 @@
   "headless": false,
   "icon_background": "#FFFFFF",
   "context_menu": {
-    "target": ["files_file", "ecosystem"]
+    "target": ["images_project", "images_dataset", "ecosystem"]
   },
   "poster": ""
 }
