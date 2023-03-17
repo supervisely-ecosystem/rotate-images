@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://user-images.githubusercontent.com/115161827/225942179-0eba5f1a-0c2b-4402-9549-93292f1eb4ec.jpg"/>
+<img src="https://user-images.githubusercontent.com/115161827/225969759-5699c73c-fbac-4eb3-aa10-c66f9e375ca5.jpg"/>
 
 # Rotate images with annotations
 
