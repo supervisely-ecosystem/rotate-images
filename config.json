@@ -4,15 +4,19 @@
   "version": "2.0.0",
   "release": { "version": "v0.0.2", "name": "init" },
   "slug": "iwatkot/rotate_images",
-  "categories": [],
+  "categories": [    
+    "images",
+    "annotation transformation",
+    "data operations"
+  ],
   "description": "Rotates images along with the annotations in the dataset.",
   "docker_image": "supervisely/base-py-sdk:6.69.69",
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "port": 8000,
   "task_location": "workspace_tasks",
-  "icon": "",
+  "icon": "https://user-images.githubusercontent.com/115161827/225921375-f7e6aa31-7553-4332-b9fa-9f793944d4f0.png",
+  "icon_cover": true,
   "headless": false,
-  "icon_background": "#FFFFFF",
   "context_menu": {
     "target": ["images_project", "images_dataset", "ecosystem"]
   },
