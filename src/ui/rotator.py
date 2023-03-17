@@ -1,6 +1,6 @@
 import os
 
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import supervisely as sly
 
@@ -10,7 +10,7 @@ from supervisely.app.widgets import (
     Card,
     Table,
     Container,
-    LabeledImage,
+    Image,
     Slider,
     Field,
     Button,
@@ -59,8 +59,8 @@ table_card = Card(
 )
 table_card.lock()
 
-image_preview = LabeledImage()
-image_preview.set(title="", image_url=os.path.join("static", g.PLACEHOLDER))
+image_preview = Image()
+image_preview.set(url=os.path.join("static", g.PLACEHOLDER))
 
 rotator = Slider(
     value=0,
@@ -112,7 +112,7 @@ def rotate_left():
     global current_angle
     rotate_angle = current_angle - g.ROTATE_ANGLE
     current_angle = rotate_angle
-    rotate_image(rotate_angle)
+    rotate_preview(rotate_angle)
 
 
 @rotate_right_button.click
@@ -121,7 +121,7 @@ def rotate_right():
     global current_angle
     rotate_angle = current_angle + g.ROTATE_ANGLE
     current_angle = rotate_angle
-    rotate_image(rotate_angle)
+    rotate_preview(rotate_angle)
 
 
 @precise_angle_checkbox.value_changed
@@ -146,7 +146,7 @@ def apply_angle():
     rotator_angle = rotator.get_value()
     global current_angle
     current_angle = rotator_angle
-    rotate_image(rotator_angle)
+    rotate_preview(rotator_angle)
 
 
 @reset_button.click
@@ -155,7 +155,7 @@ def reset_angle():
     rotator.set_value(0)
     global current_angle
     current_angle = 0
-    rotate_image(0)
+    rotate_preview(0)
 
 
 def build_table(dataset_id: int):
@@ -223,11 +223,20 @@ def data_from_image(image: sly.api.image_api.ImageInfo) -> List[Union[str, int]]
 
 
 # Global variables to access them in different functions.
+# Image object loaded from the API.
 current_image = None
-current_image_local_path = None
-rotated_image_local_path = None
-current_image_annotation = None
-rotated_annotation = None
+
+# The path to the original image (which is not rotating until the Save button is clicked).
+original_image_path = None
+
+# Annotation object loaded from the API (which is also not rotating until the Save button is clicked).
+original_annotation = None
+
+# The path to the annotated image. Copies of this file will be created for each rotation.
+annotated_image_path = None
+
+# The path to the image which will be shown in the preview widget (it's the only one which actually rotating).
+rotated_image_path = None
 
 
 @table.click
@@ -243,12 +252,10 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
         return
 
     # Resetting the global variables if the new image was selected.
-    global current_image, current_image_local_path, current_image_annotation
-    current_image = current_image_local_path = current_image_annotation = None
-    global rotated_image_local_path, rotated_annotation
-    rotated_image_local_path = rotated_annotation = None
-
-    image_preview.loading = True
+    global current_image, original_image_path, original_annotation
+    current_image = original_image_path = original_annotation = None
+    global annotated_image_path, rotated_image_path
+    annotated_image_path = rotated_image_path = None
 
     # Getting image id from the table after clicking the button.
     current_image_id = datapoint.row[COL_ID]
@@ -258,14 +265,18 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
     # Defining the path to the image in local static directory as global variable.
-    # global current_image_local_path
-    current_image_local_path = os.path.join(g.STATIC_DIR, current_image.name)
+    # global original_image_path
+    original_image_path = os.path.join(g.STATIC_DIR, current_image.name)
 
     # Downloading the image from the dataset to the local static directory.
-    g.api.image.download(current_image_id, current_image_local_path)
+    # It will be stored as original image without drawing the annotation on it.
+    g.api.image.download(current_image_id, original_image_path)
+
+    # Downloading the image as numpy array to add the annotation on it.
+    image_np = g.api.image.download_np(current_image_id)
 
     sly.logger.debug(
-        f"The image with id {current_image_id} was downloaded to {current_image_local_path}."
+        f"The image with id {current_image_id} was downloaded as numpy array."
     )
 
     # Getting project meta object from the dataset.
@@ -277,34 +288,40 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     ann_json = ann_info.annotation
 
     # Defining the annotation object as global variable to save it after rotation.
-    # global current_image_annotation
-    current_image_annotation = sly.Annotation.from_json(ann_json, project_meta)
+    original_annotation = sly.Annotation.from_json(ann_json, project_meta)
 
     sly.logger.debug("Successfully read annotation for the image.")
 
+    # Drawing the annotation on the image and saving it to the local static directory.
+    preview_image_filename = f"annotated_{current_image.name}"
+    annotated_image_path = os.path.join(g.STATIC_DIR, preview_image_filename)
+    original_annotation.draw_pretty(image_np, output_path=annotated_image_path)
+
+    sly.logger.debug(
+        f"Drawn annotation on the image and saved it to {annotated_image_path}."
+    )
+    sly.logger.debug(f"The original image was saved to {original_image_path}.")
+
+    # Updating the preview widget with rotated image.
     image_preview.set(
-        title=current_image.name,
-        image_url=os.path.join("static", current_image.name),
-        ann=current_image_annotation,
+        url=os.path.join("static", preview_image_filename),
     )
 
     sly.logger.debug(
-        f"Updated image preview with the image {current_image.name} from static directory."
+        f"Updated image preview with the image {preview_image_filename} from static directory."
     )
-
-    image_preview.loading = False
 
     rotator.set_value(0)
     preview_card.unlock()
     output.card.unlock()
 
 
-def rotate_image(angle: int):
-    """Rotates the image and annotation by the given angle. Updates preview widget with the
-    rotated image and annotation.
+def rotate_preview(angle: int):
+    """Rotates the preview image by the given angle. Updates preview widget with the
+    rotated image
 
     Args:
-        angle (int): angle to rotate the image and annotation.
+        angle (int): angle to rotate the preview image.
     """
     # Preparing widget for the new image.
     image_preview.clean_up()
@@ -335,10 +352,11 @@ def rotate_image(angle: int):
         )
 
     # Loading the image from the local static directory for rotation.
-    img = sly.image.read(current_image_local_path)
+    global annotated_image_path
+    img = sly.image.read(annotated_image_path)
 
     sly.logger.debug(
-        f"Image was readed from path {current_image_local_path} in static directory."
+        f"Preview image was readed from path {annotated_image_path} in static directory."
     )
 
     # Rotating the image with inverted angle (just for convinient appearance in the GUI).
@@ -350,30 +368,59 @@ def rotate_image(angle: int):
     rotated_image_filename = f"rotated_{-angle}_{current_image.name}"
 
     # Defining the path to the rotated image in local static directory as global variable.
-    global rotated_image_local_path
-    rotated_image_local_path = os.path.join(g.STATIC_DIR, rotated_image_filename)
+    global rotated_image_path
+    rotated_image_path = os.path.join(g.STATIC_DIR, rotated_image_filename)
 
     # Saving the rotated image to the local static directory.
-    sly.image.write(rotated_image_local_path, img)
+    sly.image.write(rotated_image_path, img)
 
-    sly.logger.debug(f"Rotated image was saved to {rotated_image_local_path}.")
+    sly.logger.debug(f"Rotated image was saved to {rotated_image_path}.")
 
-    # Rotating the annotation with inverted angle (just for convinient appearance in the GUI).
-    rotator = ImageRotator(current_image_annotation.img_size, -angle)
-
-    # Defining the rotated annotation object as global variable to save it after rotation.
-    global rotated_annotation
-    rotated_annotation = current_image_annotation.rotate(rotator)
-
-    sly.logger.debug("Annotation was successfully rotated.")
-
-    # Updating the image preview widget with new rotated image and annotation.
+    # Updating the image preview widget with new rotated image.
     image_preview.set(
-        title=current_image.name,
-        image_url=os.path.join("static", rotated_image_filename),
-        ann=rotated_annotation,
+        url=os.path.join("static", rotated_image_filename),
     )
 
     sly.logger.debug(
         f"Updated image preview with the rotated image {rotated_image_filename}."
     )
+
+
+def rotate_image() -> Tuple[str, sly.Annotation]:
+    """Reads global variables to load the original image and annotation, rotates them
+    to a reversed angle and saves the result to the local static directory.
+
+    Returns:
+        Tuple[str, sly.Annotation]: local path to the rotated image and rotated annotation.
+    """
+    # Loading the original image from the local static directory.
+    global current_angle, original_image_path, original_annotation
+    original_image = sly.image.read(original_image_path)
+
+    sly.logger.debug(
+        f"Successfully read the original image from {original_image_path}."
+    )
+
+    # Rotating the image with inverted angle to correspond the angle in the preview widget.
+    rotated_image = sly.image.rotate(
+        original_image, -current_angle, mode=sly.image.RotateMode.KEEP_BLACK
+    )
+
+    sly.logger.debug(
+        f"Successfully rotated the image with angle {-current_angle} degrees."
+    )
+
+    # Saving the rotated image to the local static directory.
+    result_path = os.path.join(g.STATIC_DIR, f"result_{current_image.name}")
+    sly.image.write(result_path, rotated_image)
+
+    sly.logger.debug(f"Successfully saved the rotated image to {result_path}.")
+
+    rotator = ImageRotator(original_annotation.img_size, -current_angle)
+    result_annotation = original_annotation.rotate(rotator)
+
+    sly.logger.debug(
+        f"Successfully rotated the annotation with angle {-current_angle}."
+    )
+
+    return result_path, result_annotation

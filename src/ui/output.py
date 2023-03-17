@@ -64,6 +64,9 @@ def save_image():
         f"The save method is to create a new image: {create_new_image is True}."
     )
 
+    # Reading the original file and the annotation and rotating them to the current angle.
+    result_path, result_annotation = rotator.rotate_image()
+
     if create_new_image:
         # Changing the name of the image to avoid non unique exception.
         image_postfix = 1
@@ -128,7 +131,7 @@ def save_image():
     rotated_image_id = g.api.image.upload_path(
         dataset_id,
         image_name,
-        rotator.rotated_image_local_path,
+        result_path,
         meta,
     ).id
 
@@ -137,7 +140,7 @@ def save_image():
     )
 
     # Uploading annotation for the rotated image.
-    g.api.annotation.upload_ann(rotated_image_id, rotator.rotated_annotation)
+    g.api.annotation.upload_ann(rotated_image_id, result_annotation)
 
     sly.logger.info(
         f"Uploaded the annotation for the image with id {rotated_image_id}."

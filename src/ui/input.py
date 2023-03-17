@@ -124,7 +124,7 @@ def load_dataset():
     change_dataset_button.show()
 
     # Putting the placeholder image to the image preview and locking rotator and output cards.
-    rotator.image_preview.set(title="", image_url=os.path.join("static", g.PLACEHOLDER))
+    rotator.image_preview.set(url=os.path.join("static", g.PLACEHOLDER))
     rotator.preview_card.lock()
     output.card.lock()
 
