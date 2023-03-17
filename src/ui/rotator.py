@@ -239,7 +239,7 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     Args:
         datapoint (sly.app.widgets.Table.ClickedDataPoint): clicked datapoint in the table.
     """
-    if datapoint.button_name is None:
+    if datapoint.button_name != SELECT_IMAGE:
         return
 
     # Resetting the global variables if the new image was selected.
@@ -257,47 +257,46 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
 
     sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
-    if datapoint.button_name == SELECT_IMAGE:
-        # Defining the path to the image in local static directory as global variable.
-        # global current_image_local_path
-        current_image_local_path = os.path.join(g.STATIC_DIR, current_image.name)
+    # Defining the path to the image in local static directory as global variable.
+    # global current_image_local_path
+    current_image_local_path = os.path.join(g.STATIC_DIR, current_image.name)
 
-        # Downloading the image from the dataset to the local static directory.
-        g.api.image.download(current_image_id, current_image_local_path)
+    # Downloading the image from the dataset to the local static directory.
+    g.api.image.download(current_image_id, current_image_local_path)
 
-        sly.logger.debug(
-            f"The image with id {current_image_id} was downloaded to {current_image_local_path}."
-        )
+    sly.logger.debug(
+        f"The image with id {current_image_id} was downloaded to {current_image_local_path}."
+    )
 
-        # Getting project meta object from the dataset.
-        meta_json = g.api.project.get_meta(input.selected_project)
-        project_meta = sly.ProjectMeta.from_json(data=meta_json)
+    # Getting project meta object from the dataset.
+    meta_json = g.api.project.get_meta(input.selected_project)
+    project_meta = sly.ProjectMeta.from_json(data=meta_json)
 
-        # Getting annotation object from the dataset.
-        ann_info = g.api.annotation.download(current_image_id)
-        ann_json = ann_info.annotation
+    # Getting annotation object from the dataset.
+    ann_info = g.api.annotation.download(current_image_id)
+    ann_json = ann_info.annotation
 
-        # Defining the annotation object as global variable to save it after rotation.
-        # global current_image_annotation
-        current_image_annotation = sly.Annotation.from_json(ann_json, project_meta)
+    # Defining the annotation object as global variable to save it after rotation.
+    # global current_image_annotation
+    current_image_annotation = sly.Annotation.from_json(ann_json, project_meta)
 
-        sly.logger.debug("Successfully read annotation for the image.")
+    sly.logger.debug("Successfully read annotation for the image.")
 
-        image_preview.set(
-            title=current_image.name,
-            image_url=os.path.join("static", current_image.name),
-            ann=current_image_annotation,
-        )
+    image_preview.set(
+        title=current_image.name,
+        image_url=os.path.join("static", current_image.name),
+        ann=current_image_annotation,
+    )
 
-        sly.logger.debug(
-            f"Updated image preview with the image {current_image.name} from static directory."
-        )
+    sly.logger.debug(
+        f"Updated image preview with the image {current_image.name} from static directory."
+    )
 
-        image_preview.loading = False
+    image_preview.loading = False
 
-        rotator.set_value(0)
-        preview_card.unlock()
-        output.card.unlock()
+    rotator.set_value(0)
+    preview_card.unlock()
+    output.card.unlock()
 
 
 def rotate_image(angle: int):

@@ -110,6 +110,9 @@ def load_dataset():
     global selected_dataset
     selected_dataset = dataset_id
 
+    # Cleaning the static directory when the new dataset is selected.
+    clean_static_dir()
+
     # Disabling the dataset selector and the load button.
     select_dataset.disable()
     load_button.hide()
@@ -150,6 +153,14 @@ def load_dataset():
     # Building the table with images from the selected dataset.
     rotator.build_table(dataset_id)
     rotator.table_card.unlock()
+
+
+def clean_static_dir():
+    """Deletes all files from the static directory except the placeholder image."""
+    static_files = os.listdir(g.STATIC_DIR)
+    for static_file in static_files:
+        if static_file != g.PLACEHOLDER:
+            os.remove(os.path.join(g.STATIC_DIR, static_file))
 
 
 @change_dataset_button.click
