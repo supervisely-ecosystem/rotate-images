@@ -22,15 +22,15 @@ This app allows you to rotate images along with annotations. After selecting a d
 ## How To Run
 
 If you don't run the app from the context menu of a dataset, first of all you need to specify the dataset to work with. You need to select a dataset in the `Input dataset` section. After selecting the dataset, click the button `Load data` under the dataset selector. The app will load the dataset and generate a table with all images in the dataset.<br>
-Note: when the data from the dataset will be loaded, the dataset selector will be locked until you click the `Change` dataset button.<br>
+Note: when the data from the dataset will be loaded, the dataset selector will be locked until you click the `Change dataset` button.<br>
 Now you can follow these steps to rotate images:<br>
 <br>
-**Step 1:** The image names in the table are clickable, which may help you to find the image you need. When you find the image you need, click on the `SELECT` button in the rightmost column. The image will be opened in the preview window.<br><br>
+**Step 1:** The image names in the table are clickable, which may help you to find the image you need to work with. When you find the needed image, click on the `SELECT` button in the rightmost column. The image will be opened in the preview window.<br><br>
 **Step 2:** Now you can click `Rotate left` and `Rotate right` buttons to rotate the image by 90 degrees.
 
 <img src="https://user-images.githubusercontent.com/115161827/225948144-395cab9c-9317-4721-8b09-bd859732f6c0.png"/> <br><br>
 
-**Step 3:** If you need to rotate the image on a custom angle, you can use the slider, which is hidden by default. To show the slider, check the `Rotate the image with precise angle` checkbox. The rotate buttons will be hidden and the slider will be shown instead.<br><br>
+**Step 3:** If you need to rotate the image on a custom angle, you can use the slider, which is hidden by default. To show the slider, check the `Rotate the image with a precise angle` checkbox. The rotate buttons will be hidden and the slider will be shown instead.<br><br>
 
 **Step 4:** You can select the angle by dragging the slider or by typing the angle in the input field. The range of allowed angles is from -180 to 180 degrees. After selecting the angle, click the `Apply` button under the slider. The image will be rotated on the selected angle.<br><br>
 
@@ -38,7 +38,7 @@ Now you can follow these steps to rotate images:<br>
 
 **Step 5:** You can reset the current image rotation by clicking the `Reset` button under the slider. The image will be rotated back to the original state.<br><br>
 
-**Step 6:** When you finish rotating the image, you can save the result. Follow the `Save` method` section and choose one of two options: replace the original image with the rotated one or save the rotated image as a new image.<br><br>
+**Step 6:** When you finish rotating the image, you can save the result. Follow the `Save method` section and choose one of two options: replace the original image with the rotated one or save the rotated image as a new file.<br><br>
 
 <img src="https://user-images.githubusercontent.com/115161827/225951045-440f86f7-b058-4172-be5d-eea94a2b6172.png"/> <br><br>
 

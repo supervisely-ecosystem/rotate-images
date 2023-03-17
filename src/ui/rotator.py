@@ -79,7 +79,9 @@ rotate_buttons = Flexbox(
     widgets=[rotate_left_button, rotate_right_button], center_content=True
 )
 
-precise_angle_checkbox = Checkbox("Rotate the image with precise angle", checked=False)
+precise_angle_checkbox = Checkbox(
+    "Rotate the image with a precise angle", checked=False
+)
 
 apply_button = Button("Apply", icon="zmdi zmdi-check")
 reset_button = Button("Reset", icon="zmdi zmdi-close", button_type="warning")
