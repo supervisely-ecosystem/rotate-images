@@ -30,7 +30,7 @@ Now you can follow these steps to rotate images:<br>
 
 <img src="https://user-images.githubusercontent.com/115161827/225948144-395cab9c-9317-4721-8b09-bd859732f6c0.png"/> <br><br>
 
-**Step 3:** If you need to rotate the image on a custom angle, you can use the slider, which is hidden by default. To show the slider, check the `Rotate the `image with `the precise` angle` checkbox. The rotate buttons will be hidden and the slider will be shown instead.<br><br>
+**Step 3:** If you need to rotate the image on a custom angle, you can use the slider, which is hidden by default. To show the slider, check the `Rotate the image with precise angle` checkbox. The rotate buttons will be hidden and the slider will be shown instead.<br><br>
 
 **Step 4:** You can select the angle by dragging the slider or by typing the angle in the input field. The range of allowed angles is from -180 to 180 degrees. After selecting the angle, click the `Apply` button under the slider. The image will be rotated on the selected angle.<br><br>
 
