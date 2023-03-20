@@ -216,8 +216,6 @@ def data_from_image(image: sly.api.image_api.ImageInfo) -> List[Union[str, int]]
         image.id,
     )
 
-    print(image.meta)
-
     return [
         image.id,
         f"<a href={image_url}>{image.name}</a>",
