@@ -18,6 +18,7 @@
   "icon_cover": true,
   "headless": false,
   "context_menu": {
+    "context_category": "Transform",
     "target": ["images_project", "images_dataset", "ecosystem"]
   },
   "poster": "https://user-images.githubusercontent.com/115161827/225969759-5699c73c-fbac-4eb3-aa10-c66f9e375ca5.jpg"
