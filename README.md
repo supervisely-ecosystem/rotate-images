@@ -5,8 +5,7 @@
 
 <p align="center">
   <a href="#Overview">Overview</a> •
-  <a href="#How-To-Run">How To Run</a> •
-  <a href="#How-To-Run">How To Use</a>
+  <a href="#How-To-Use">How To Use</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/rotate-images)
@@ -21,15 +20,10 @@
 This app allows you to rotate images along with annotations. After selecting a dataset to work with, the app will generate a table with all images in the dataset. You can open an image in the preview window and rotate it left or right and even on a custom angle with the slider. After rotating the image, you can save replace the original image with the rotated one or save it as a new image. The app will also rotate all annotations on the image.
 
 **Warning! This app does not support working with Cuboids!**
-
-## How To Run
-The app can be launched from the context menu of a dataset or a project along with the option to be launched from Supervisely EcoSystem. If the app is launched from EcoSystem, you need to select a project and a dataset with images to work with.<br>
 ## How To Use
 
-If you don't run the app from the context menu of a dataset, first of all you need to specify the dataset to work with. You need to select a dataset in the `Input dataset` section. After selecting the dataset, click the button `Load data` under the dataset selector. The app will load the dataset and generate a table with all images in the dataset.<br>
-Note: when the data from the dataset will be loaded, the dataset selector will be locked until you click the `Change dataset` button.<br>
-Now you can follow these steps to rotate images:<br>
-<br>
+**Step 0:** Run the application from Ecosystem, the context menu of the images project or the images dataset.<br>
+Note: if you don't run the app from the context menu of a dataset, first of all, you need to specify the dataset to work with. You need to select a dataset in the `Input dataset` section. After selecting the dataset, click the button `Load data` under the dataset selector. The app will load the dataset and generate a table with all images in the dataset. When the data from the dataset will be loaded, the dataset selector will be locked until you click the `Change dataset` button.<br><br>
 **Step 1:** Сlick on the `SELECT` button in the rightmost column. The image will be opened in the preview window.<br>
 _Hint: the image names in the table are clickable, which may help you to find the image you need to work with._<br><br>
 **Step 2:** Now you can click rotate the selected image with buttons `Rotate left` and `Rotate right` or with the slider.<br>
