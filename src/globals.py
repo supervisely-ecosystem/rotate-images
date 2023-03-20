@@ -5,26 +5,17 @@ import supervisely as sly
 
 from dotenv import load_dotenv
 
-load_dotenv("local.env")
-load_dotenv(os.path.expanduser("~/supervisely.env"))
+if sly.is_development():
+    load_dotenv("local.env")
+    load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 api: sly.Api = sly.Api.from_env()
 
 TEAM_ID = sly.io.env.team_id()
 WORKSPACE_ID = sly.io.env.workspace_id()
 
-PROJECT_ID = None
-DATASET_ID = None
-
-try:
-    PROJECT_ID = sly.io.env.project_id()
-except Exception:
-    sly.logger.debug("Project id not found in env variables.")
-
-try:
-    DATASET_ID = sly.io.env.dataset_id()
-except Exception:
-    sly.logger.debug("Dataset id not found in env variables.")
+PROJECT_ID = sly.io.env.project_id(raise_not_found=False)
+DATASET_ID = sly.io.env.dataset_id(raise_not_found=False)
 
 SLY_APP_DATA_DIR = sly.app.get_data_dir()
 

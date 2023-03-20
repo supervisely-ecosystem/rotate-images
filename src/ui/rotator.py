@@ -28,19 +28,21 @@ current_angle = 0
 # Table columns names.
 COL_ID = "IMAGE ID"
 COL_IMAGE = "FILE NAME"
-COL_SIZE = "SIZE (BYTES)"
+# COL_SIZE = "SIZE (BYTES)"
 COL_WIDTH = "WIDTH (PIXELS)"
 COL_HEIGHT = "HEIGHT (PIXELS)"
 COL_LABELS = "LABELS (COUNT)"
+COL_ROTATION = "ROTATION (DEGREES)"
 SELECT_IMAGE = "SELECT"
 
 columns = [
     COL_ID,
     COL_IMAGE,
-    COL_SIZE,
+    # COL_SIZE,
     COL_WIDTH,
     COL_HEIGHT,
     COL_LABELS,
+    COL_ROTATION,
     SELECT_IMAGE,
 ]
 
@@ -213,13 +215,17 @@ def data_from_image(image: sly.api.image_api.ImageInfo) -> List[Union[str, int]]
         input.selected_dataset,
         image.id,
     )
+
+    print(image.meta)
+
     return [
         image.id,
         f"<a href={image_url}>{image.name}</a>",
-        image.size,
+        # image.size,
         image.width,
         image.height,
         image.labels_count,
+        image.meta.get("Rotated on angle", 0),
         sly.app.widgets.Table.create_button(SELECT_IMAGE),
     ]
 
@@ -258,6 +264,9 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     current_image = original_image_path = original_annotation = None
     global annotated_image_path, rotated_image_path
     annotated_image_path = rotated_image_path = None
+
+    global current_angle
+    current_angle = 0
 
     # Getting image id from the table after clicking the button.
     current_image_id = datapoint.row[COL_ID]

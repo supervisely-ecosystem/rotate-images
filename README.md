@@ -3,8 +3,6 @@
 
 # Rotate images with annotations
 
-**Warning! This app does not support working with Cuboids!**
-
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#How-To-Run">How To Run</a>
@@ -20,6 +18,8 @@
 
 ## Overview
 This app allows you to rotate images along with annotations. After selecting a dataset to work with, the app will generate a table with all images in the dataset. You can open an image in the preview window and rotate it left or right and even on a custom angle with the slider. After rotating the image, you can save replace the original image with the rotated one or save it as a new image. The app will also rotate all annotations on the image.
+
+**Warning! This app does not support working with Cuboids!**
 
 ## How To Run
 
