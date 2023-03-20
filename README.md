@@ -3,6 +3,8 @@
 
 # Rotate images with annotations
 
+**Warning! This app does not support working with Cuboids!**
+
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#How-To-Run">How To Run</a>
