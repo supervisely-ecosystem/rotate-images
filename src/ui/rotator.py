@@ -182,12 +182,9 @@ def build_table(dataset_id: int):
     for image in images:
         rows.append(data_from_image(image))
 
-    # df = pd.DataFrame(rows, columns=columns)
-    # table.read_pandas(df)
+    table_data = {"columns": columns, "data": rows}
 
-    dict = {"columns": columns, "data": rows}
-
-    table.read_json(dict)
+    table.read_json(table_data)
 
     table.loading = False
 
@@ -271,11 +268,38 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     # Getting image info from the dataset by image id.
     current_image = g.api.image.get_info_by_id(current_image_id)
 
+    if not current_image:
+        # If there was en error while getting the image info, deleting the row with the image id
+        # and show the error message for the user.
+
+        sly.logger.error(f"Can't find image with id {current_image_id} in the dataset.")
+        sly.app.show_dialog(
+            "Image not found",
+            f"Can't find image with id {current_image_id} in the dataset.",
+            status="error",
+        )
+
+        table.delete_row(COL_ID, current_image_id)
+
+        sly.logger.debug(f"Deleted the row with id {current_image_id} from the table.")
+
+        return
+
     sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
     # Defining the path to the image in local static directory as global variable.
     # global original_image_path
     original_image_path = os.path.join(g.STATIC_DIR, current_image.name)
+
+    if os.path.exists(original_image_path):
+        # If the file with the same name already exists in static directory, deleting it.
+
+        sly.logger.debug(
+            f"File {original_image_path} already exists (from anonther app session)."
+        )
+        os.remove(original_image_path)
+
+        sly.logger.debug(f"File {original_image_path} was removed.")
 
     # Downloading the image from the dataset to the local static directory.
     # It will be stored as original image without drawing the annotation on it.

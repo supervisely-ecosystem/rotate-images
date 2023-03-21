@@ -104,7 +104,11 @@ def load_dataset():
         no_dataset_message.show()
         return
 
+    # Hide the warning message if dataset was selected.
     no_dataset_message.hide()
+
+    # Hiding the result message after the new dataset is selected.
+    output.result_message.hide()
 
     # Changing the values of the global variables to access them from other modules.
     global selected_dataset
