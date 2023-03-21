@@ -74,8 +74,8 @@ rotator = Slider(
 )
 rotator.set_value(current_angle)
 
-rotate_left_button = Button("Rotate left", icon="zmdi zmdi-undo")
-rotate_right_button = Button("Rotate right", icon="zmdi zmdi-redo")
+rotate_left_button = Button("Rotate left", icon="zmdi zmdi-rotate-ccw")
+rotate_right_button = Button("Rotate right", icon="zmdi zmdi-rotate-cw")
 
 rotate_buttons = Flexbox(
     widgets=[rotate_left_button, rotate_right_button], center_content=True
