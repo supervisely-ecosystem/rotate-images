@@ -288,18 +288,10 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
     # Defining the path to the image in local static directory as global variable.
-    # global original_image_path
     original_image_path = os.path.join(g.STATIC_DIR, current_image.name)
 
-    if os.path.exists(original_image_path):
-        # If the file with the same name already exists in static directory, deleting it.
-
-        sly.logger.debug(
-            f"File {original_image_path} already exists (from anonther app session)."
-        )
-        os.remove(original_image_path)
-
-        sly.logger.debug(f"File {original_image_path} was removed.")
+    # Cleaning the static directory before downloading the image to avoid cached image in preview widget.
+    input.clean_static_dir()
 
     # Downloading the image from the dataset to the local static directory.
     # It will be stored as original image without drawing the annotation on it.

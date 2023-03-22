@@ -162,6 +162,11 @@ def load_dataset():
 def clean_static_dir():
     """Deletes all files from the static directory except the placeholder image."""
     static_files = os.listdir(g.STATIC_DIR)
+
+    sly.logger.debug(
+        f"Cleaning static directory. Number of files to delete: {len(static_files) - 1}."
+    )
+
     for static_file in static_files:
         if static_file != g.PLACEHOLDER:
             os.remove(os.path.join(g.STATIC_DIR, static_file))
