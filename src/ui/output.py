@@ -96,9 +96,7 @@ def save_image():
 
     else:
         # Getting the id of the current image and removing it from the dataset.
-        image_id = g.api.image.get_info_by_name(
-            dataset_id, rotator.current_image.name
-        ).id
+        image_id = rotator.current_image.id
         g.api.image.remove(image_id)
 
         sly.logger.info(

@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from typing import List, Union, Tuple
 
@@ -229,6 +230,9 @@ def data_from_image(image: sly.api.image_api.ImageInfo) -> List[Union[str, int]]
 # Image object loaded from the API.
 current_image = None
 
+# Name of file with random string to avoid caching.
+random_image_name = None
+
 # The path to the original image (which is not rotating until the Save button is clicked).
 original_image_path = None
 
@@ -257,8 +261,8 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     # Resetting the global variables if the new image was selected.
     global current_image, original_image_path, original_annotation
     current_image = original_image_path = original_annotation = None
-    global annotated_image_path, rotated_image_path
-    annotated_image_path = rotated_image_path = None
+    global annotated_image_path, rotated_image_path, random_image_name
+    annotated_image_path = rotated_image_path = random_image_name = None
 
     global current_angle
     current_angle = 0
@@ -287,8 +291,11 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
 
     sly.logger.debug(f"The image with id {current_image_id} was selected in the table.")
 
+    # Creating a filename with random string to avoid caching.
+    random_image_name = f"{secrets.token_hex(10)}_{current_image.name}"
+
     # Defining the path to the image in local static directory as global variable.
-    original_image_path = os.path.join(g.STATIC_DIR, current_image.name)
+    original_image_path = os.path.join(g.STATIC_DIR, random_image_name)
 
     # Cleaning the static directory before downloading the image to avoid cached image in preview widget.
     input.clean_static_dir()
@@ -318,7 +325,7 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     sly.logger.debug("Successfully read annotation for the image.")
 
     # Drawing the annotation on the image and saving it to the local static directory.
-    preview_image_filename = f"annotated_{current_image.name}"
+    preview_image_filename = f"annotated_{random_image_name}"
     annotated_image_path = os.path.join(g.STATIC_DIR, preview_image_filename)
     original_annotation.draw_pretty(image_np, output_path=annotated_image_path)
 
@@ -388,9 +395,9 @@ def rotate_preview(angle: int):
     # Using KEEP_BLACK mode to avoid data loss of the image.
     img = sly.image.rotate(img, -angle, mode=sly.image.RotateMode.KEEP_BLACK)
 
-    sly.logger.debug(f"Image was rotated with angle {-angle} degrees.")
+    sly.logger.debug(f"Image was rotated with angle {angle} degrees.")
 
-    rotated_image_filename = f"rotated_{-angle}_{current_image.name}"
+    rotated_image_filename = f"rotated_{angle}_{random_image_name}"
 
     # Defining the path to the rotated image in local static directory as global variable.
     global rotated_image_path
