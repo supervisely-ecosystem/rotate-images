@@ -133,20 +133,18 @@ def load_dataset():
     output.card.lock()
 
     global selected_team, selected_workspace, selected_project
-    if not selected_project:
-        # If the project id is not set, getting project, workspace and team ids from the API.
-        sly.logger.debug(
-            f"Project ID is not set, calling API with dataset ID {dataset_id}."
-        )
+    sly.logger.debug(
+        f"Calling API with dataset ID {dataset_id} to get project, workspace and team IDs."
+    )
 
-        selected_project = g.api.dataset.get_info_by_id(dataset_id).project_id
-        selected_workspace = g.api.project.get_info_by_id(selected_project).workspace_id
-        selected_team = g.api.workspace.get_info_by_id(selected_workspace).team_id
+    selected_project = g.api.dataset.get_info_by_id(dataset_id).project_id
+    selected_workspace = g.api.project.get_info_by_id(selected_project).workspace_id
+    selected_team = g.api.workspace.get_info_by_id(selected_workspace).team_id
 
-        sly.logger.debug(
-            f"Recived IDs from the API. Selected team: {selected_team}, "
-            f"selected workspace: {selected_workspace}, selected project: {selected_project}"
-        )
+    sly.logger.debug(
+        f"Recived IDs from the API. Selected team: {selected_team}, "
+        f"selected workspace: {selected_workspace}, selected project: {selected_project}"
+    )
 
     dataset_thumbnail.set(
         g.api.project.get_info_by_id(selected_project),
