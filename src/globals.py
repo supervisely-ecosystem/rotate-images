@@ -9,13 +9,13 @@ if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(os.path.expanduser("~/supervisely.env"))
 
-api: sly.Api = sly.Api.from_env()
+api = sly.Api.from_env()
 
-TEAM_ID = sly.io.env.team_id()
-WORKSPACE_ID = sly.io.env.workspace_id()
+TEAM_ID = sly.env.team_id()
+WORKSPACE_ID = sly.env.workspace_id()
 
-PROJECT_ID = sly.io.env.project_id(raise_not_found=False)
-DATASET_ID = sly.io.env.dataset_id(raise_not_found=False)
+PROJECT_ID = sly.env.project_id(raise_not_found=False)
+DATASET_ID = sly.env.dataset_id(raise_not_found=False)
 
 SLY_APP_DATA_DIR = sly.app.get_data_dir()
 ABSOLUTE_PATH = os.path.dirname(__file__)
