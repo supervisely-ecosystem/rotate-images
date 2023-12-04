@@ -38,7 +38,7 @@ if g.DATASET_ID and g.PROJECT_ID:
     sly.logger.debug("App was loaded from a dataset.")
 
     # Stting values to the widgets from environment variables.
-    select_dataset = SelectDataset(default_id=g.DATASET_ID, project_id=g.PROJECT_ID)
+    select_dataset = SelectDataset(default_id=g.DATASET_ID, project_id=g.PROJECT_ID, allowed_project_types=[sly.ProjectType.IMAGES])
 
     selected_team = g.TEAM_ID
     selected_workspace = g.WORKSPACE_ID
@@ -66,13 +66,13 @@ elif g.PROJECT_ID:
     selected_project = g.PROJECT_ID
 
     select_dataset = SelectDataset(
-        project_id=g.PROJECT_ID, compact=True, show_label=False
+        project_id=g.PROJECT_ID, compact=True, show_label=False, allowed_project_types=[sly.ProjectType.IMAGES]
     )
 else:
     # If the app was loaded from ecosystem: showing the dataset selector in full mode.
     sly.logger.debug("App was loaded from ecosystem.")
 
-    select_dataset = SelectDataset()
+    select_dataset = SelectDataset(allowed_project_types=[sly.ProjectType.IMAGES])
 
 # Inout card with all widgets.
 card = Card(
