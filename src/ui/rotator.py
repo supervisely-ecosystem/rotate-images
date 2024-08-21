@@ -255,6 +255,12 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     Args:
         datapoint (sly.app.widgets.Table.ClickedDataPoint): clicked datapoint in the table.
     """
+    if g.SAVE_RUNNING is True:
+        sly.logger.info(
+            "The save process is in progress. Please wait until it's finished and you will be able to select another image."
+        )
+        return
+
     if datapoint.button_name != SELECT_IMAGE:
         return
 

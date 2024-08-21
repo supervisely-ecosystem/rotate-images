@@ -31,6 +31,30 @@ card = Card(
 card.lock()
 
 
+def disable_controls():
+    input.load_button.disable()
+    input.change_dataset_button.disable()
+    rotator.table.disable()
+    rotator.rotate_left_button.disable()
+    rotator.rotate_right_button.disable()
+    rotator.precise_angle_checkbox.disable()
+    rotator.apply_button.disable()
+    rotator.reset_button.disable()
+    rotator.rotator.disable()
+
+
+def enable_controls():
+    input.load_button.enable()
+    input.change_dataset_button.enable()
+    rotator.table.enable()
+    rotator.rotate_left_button.enable()
+    rotator.rotate_right_button.enable()
+    rotator.precise_angle_checkbox.enable()
+    rotator.apply_button.enable()
+    rotator.reset_button.enable()
+    rotator.rotator.enable()
+
+
 @save_button.click
 def save_image():
     """Saves the rotated image to the dataset if it was rotated. If the image was not rotated, shows the error message.
@@ -40,7 +64,9 @@ def save_image():
     After that, saves the rotated image to the dataset and adds the row with the new image to the table.
     Generates a message with the result of the rotation and a link to the image in the labeling tool.
     """
+    g.SAVE_RUNNING = True
     result_message.hide()
+    disable_controls()
 
     # Getting the id of the dataset from the inout widget.
     dataset_id = input.selected_dataset
@@ -55,7 +81,7 @@ def save_image():
         result_message.show()
 
         sly.logger.info("The save button was pressed, but the image was not rotated.")
-
+        enable_controls()
         return
 
     # Getting the save method from the save method widget.
@@ -175,3 +201,5 @@ def save_image():
     sly.logger.debug(f"Added the row with image id {rotated_image.id} to the table.")
 
     rotator.table.loading = False
+    enable_controls()
+    g.SAVE_RUNNING = False

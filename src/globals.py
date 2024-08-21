@@ -38,3 +38,5 @@ RIGHT_LOCK_ANGLE = 90
 # Replace will delete the original image and upload the rotated one with the same name.
 # Create will upload the rotated image using the number in postfix to the original image name.
 SAVE_METHODS = {0: "Replace the image", 1: "Create a new image"}
+
+SAVE_RUNNING = False
