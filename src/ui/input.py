@@ -103,6 +103,8 @@ def load_dataset():
         # If the dataset id is empty, showing the warning message.
         no_dataset_message.show()
         return
+    
+    g.DATASET_CHANGING = True
 
     # Hide the warning message if dataset was selected.
     no_dataset_message.hide()
@@ -155,6 +157,8 @@ def load_dataset():
     # Building the table with images from the selected dataset.
     rotator.build_table(dataset_id)
     rotator.table_card.unlock()
+
+    g.DATASET_CHANGING = False
 
 
 def clean_static_dir():

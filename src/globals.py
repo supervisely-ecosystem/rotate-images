@@ -40,3 +40,4 @@ RIGHT_LOCK_ANGLE = 90
 SAVE_METHODS = {0: "Replace the image", 1: "Create a new image"}
 
 SAVE_RUNNING = False
+DATASET_CHANGING = False

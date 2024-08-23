@@ -260,6 +260,10 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
             "The save process is in progress. Please wait until it's finished and you will be able to select another image."
         )
         return
+    
+    if g.DATASET_CHANGING is True:
+        sly.logger.info("Dataset is changing. Please wait until it's finished and you will be able to select another image.")
+        return
 
     if datapoint.button_name != SELECT_IMAGE:
         return
