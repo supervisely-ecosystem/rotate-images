@@ -282,7 +282,7 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     # Getting image info from the dataset by image id.
     current_image = g.api.image.get_info_by_id(current_image_id)
 
-    if not current_image:
+    if not current_image or current_image.name is None:
         # If there was en error while getting the image info, deleting the row with the image id
         # and show the error message for the user.
 
