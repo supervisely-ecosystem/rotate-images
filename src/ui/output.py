@@ -66,6 +66,7 @@ def save_image():
     """
     g.SAVE_RUNNING = True
     result_message.hide()
+    save_button.disable()
     disable_controls()
 
     # Getting the id of the dataset from the inout widget.
@@ -207,4 +208,5 @@ def save_image():
 
     rotator.table.loading = False
     enable_controls()
+    save_button.enable()
     g.SAVE_RUNNING = False
