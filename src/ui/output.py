@@ -130,11 +130,16 @@ def save_image():
         )
 
         # Deleting the row with the current image from the table.
-        rotator.table.delete_row(rotator.COL_ID, image_id)
 
-        sly.logger.debug(
-            f"Deleted the row with image id {image_id} from the column {rotator.COL_ID}"
-        )
+        try:
+            rotator.table.delete_row(rotator.COL_ID, image_id)
+            sly.logger.debug(
+                f"Deleted the row with image id {image_id} from the column {rotator.COL_ID}"
+            )
+        except Exception as e:
+            sly.logger.warning(
+                f"Can not delete row for column ID {rotator.COL_ID} with {image_id} with error: {e}"
+            )
 
         # Using the same name for the image since it was removed from the dataset.
         image_name = rotator.current_image.name
