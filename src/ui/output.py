@@ -197,7 +197,6 @@ def save_image():
         )
 
         result_message.status = "success"
-        result_message.show()
 
         # Adding the row with the rotated image to the table and updating it.
         rotator.table.loading = True
@@ -212,6 +211,10 @@ def save_image():
         sly.logger.warning(
             f"Failed to upload the rotated image with name: {image_name}. Error: {e}"
         )
+        result_message.text = f"Failed to replace the image with name: {image_name}."
+        result_message.status = "error"
+
+    result_message.show()
 
     rotator.table.loading = False
     enable_controls()
