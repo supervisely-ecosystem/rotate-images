@@ -157,53 +157,64 @@ def save_image():
     sly.logger.debug(f"Image metadata was updated with rotation data: {rotate_meta}.")
 
     # Uploading the rotated image to the dataset.
-    rotated_image_id = g.api.image.upload_path(
-        dataset_id,
-        image_name,
-        result_path,
-        meta,
-    ).id
 
-    sly.logger.info(
-        f"Uploaded the rotated image with id {rotated_image_id} to the dataset with id {dataset_id}."
-    )
+    try:
+        rotated_image_id = g.api.image.upload_path(
+            dataset_id,
+            image_name,
+            result_path,
+            meta,
+        ).id
 
-    # Uploading annotation for the rotated image.
-    g.api.annotation.upload_ann(rotated_image_id, result_annotation)
+        # Uploading annotation for the rotated image.
+        g.api.annotation.upload_ann(rotated_image_id, result_annotation)
 
-    sly.logger.info(
-        f"Uploaded the annotation for the image with id {rotated_image_id}."
-    )
-    # Getting ImageInfo after the image was uploaded and annotation was added.
-    rotated_image = g.api.image.get_info_by_id(rotated_image_id)
+        sly.logger.info(
+            f"Uploaded the annotation for the image with id {rotated_image_id}."
+        )
+        # Getting ImageInfo after the image was uploaded and annotation was added.
+        rotated_image = g.api.image.get_info_by_id(rotated_image_id)
+        sly.logger.info(
+            f"Uploaded the rotated image with id {rotated_image_id} to the dataset with id {dataset_id}."
+        )
 
-    # Getting the link to the labeling tool for the rotated image to show it in the result message.
-    image_url = sly.imaging.image.get_labeling_tool_url(
-        input.selected_team,
-        input.selected_workspace,
-        input.selected_project,
-        input.selected_dataset,
-        rotated_image.id,
-    )
+        # Getting the link to the labeling tool for the rotated image to show it in the result message.
+        image_url = sly.imaging.image.get_labeling_tool_url(
+            input.selected_team,
+            input.selected_workspace,
+            input.selected_project,
+            input.selected_dataset,
+            rotated_image.id,
+        )
 
-    sly.logger.debug(
-        f"Generated the link to the labeling tool for the rotated image: {image_url}."
-    )
+        sly.logger.debug(
+            f"Generated the link to the labeling tool for the rotated image: {image_url}."
+        )
 
-    # Formatting the result message with the link to the rotated image in the labeling tool.
-    result_message.text = result_message.text.format(
-        image_url=f'<a href="{image_url}">{rotated_image.name}</a>'
-    )
+        # Formatting the result message with the link to the rotated image in the labeling tool.
+        result_message.text = result_message.text.format(
+            image_url=f'<a href="{image_url}">{rotated_image.name}</a>'
+        )
 
-    result_message.status = "success"
+        result_message.status = "success"
+
+        # Adding the row with the rotated image to the table and updating it.
+        rotator.table.loading = True
+
+        rotator.table.insert_row(rotator.data_from_image(rotated_image))
+
+        sly.logger.debug(
+            f"Added the row with image id {rotated_image.id} to the table."
+        )
+
+    except Exception as e:
+        sly.logger.warning(
+            f"Failed to upload the rotated image with name: {image_name}. Error: {e}"
+        )
+        result_message.text = f"Failed to replace the image with name: {image_name}."
+        result_message.status = "error"
+
     result_message.show()
-
-    # Adding the row with the rotated image to the table and updating it.
-    rotator.table.loading = True
-
-    rotator.table.insert_row(rotator.data_from_image(rotated_image))
-
-    sly.logger.debug(f"Added the row with image id {rotated_image.id} to the table.")
 
     rotator.table.loading = False
     enable_controls()
