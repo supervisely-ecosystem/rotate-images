@@ -233,6 +233,9 @@ current_image = None
 # Name of file with random string to avoid caching.
 random_image_name = None
 
+# Stable copy of random image name for use in rotate functions (won't be reset)
+current_image_filename = None
+
 # The path to the original image (which is not rotating until the Save button is clicked).
 original_image_path = None
 
@@ -271,8 +274,8 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
     # Resetting the global variables if the new image was selected.
     global current_image, original_image_path, original_annotation
     current_image = original_image_path = original_annotation = None
-    global annotated_image_path, rotated_image_path, random_image_name
-    annotated_image_path = rotated_image_path = random_image_name = None
+    global annotated_image_path, rotated_image_path, random_image_name, current_image_filename
+    annotated_image_path = rotated_image_path = random_image_name = current_image_filename = None
 
     global current_angle
     current_angle = 0
@@ -303,6 +306,9 @@ def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
 
     # Creating a filename with random string to avoid caching.
     random_image_name = f"{secrets.token_hex(10)}_{current_image.name}"
+    
+    # Save a stable copy for use in rotate functions
+    current_image_filename = random_image_name
 
     # Defining the path to the image in local static directory as global variable.
     original_image_path = os.path.join(g.STATIC_DIR, random_image_name)
@@ -407,7 +413,9 @@ def rotate_preview(angle: int):
 
     sly.logger.debug(f"Image was rotated with angle {angle} degrees.")
 
-    rotated_image_filename = f"rotated_{angle}_{random_image_name}"
+    # Use the stable copy of filename to avoid issues with None values
+    global current_image_filename
+    rotated_image_filename = f"rotated_{angle}_{current_image_filename}"
 
     # Defining the path to the rotated image in local static directory as global variable.
     global rotated_image_path
