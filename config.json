@@ -9,8 +9,8 @@
 		"data operations"
 	],
 	"description": "Rotates images along with the annotations in the dataset",
-	"docker_image": "supervisely/data-operations:6.73.164",
-	"min_instance_version": "6.11.8",
+	"docker_image": "supervisely/base-py3.12-sdk:0.0.1",
+	"min_instance_version": "6.15.2",
 	"entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
 	"port": 8000,
 	"task_location": "workspace_tasks",
